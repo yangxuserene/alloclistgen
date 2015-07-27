@@ -12,15 +12,28 @@ def contiguous_alloc(job_ranks, total_nodes):
     f.closed
 
 
+def interleave_alloc(job_ranks, total_nodes):
+    f = open(alloc_file,'w')
+    start=0
+    for num_rank in range(len(job_ranks)):
+        for rankid in range(start, start+job_ranks[num_rank]):
+            f.write("%s " % rankid)
+        f.write("\n")
+        start += job_ranks[num_rank]
+    f.closed
+
+
+
+
 
 def stripe_alloc(job_ranks, total_nodes):
-    print "the num of nodes of each Job", job_ranks 
+    #print "the num of nodes of each Job", job_ranks 
     f = open(alloc_file,'w')
     node_list = range(0, int(total_nodes))
     stripe_size = 10
     alloc_list = []
     for num_rank in range(len(job_ranks)):
-        print "job id", num_rank
+    #    print "job id", num_rank
         num_stripe = 1
         start = num_rank*stripe_size
         if(job_ranks[num_rank] % stripe_size != 0):
@@ -33,11 +46,11 @@ def stripe_alloc(job_ranks, total_nodes):
             start += len(job_ranks)*stripe_size
             num_stripe -= 1
         alloc_list.append(tmp_list) 
-    print "the allocation list of all job: \n", alloc_list
-    
+
+
     for job_id in range (len(alloc_list)):
         tmp = alloc_list[job_id]
-        print "alloc list for JOB", job_id
+        #print "alloc list for JOB", job_id
         for rankid in range (job_ranks[job_id]):
            # print tmp[rankid]
             f.write("%s " % tmp[rankid])
