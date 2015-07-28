@@ -1,4 +1,6 @@
 import sys
+import random
+
 alloc_file = 'allocation.conf'
 
 def contiguous_alloc(job_ranks, total_nodes):
@@ -12,17 +14,19 @@ def contiguous_alloc(job_ranks, total_nodes):
     f.closed
 
 
-def interleave_alloc(job_ranks, total_nodes):
+def permeate_alloc(job_ranks, total_nodes):
     f = open(alloc_file,'w')
     start=0
+    node_list = range(0, int(total_nodes))
     for num_rank in range(len(job_ranks)):
-        for rankid in range(start, start+job_ranks[num_rank]):
-            f.write("%s " % rankid)
+        permeate_area = job_ranks[num_rank]*2
+        permeate_list = node_list[num_rank*permeate_area: (num_rank+1)*permeate_area]
+        alloc_list = random.sample(permeate_list, job_ranks[num_rank])
+        print "length of alloc list", len(alloc_list), "\n", alloc_list,"\n"
+        for idx in range(len(alloc_list)):
+            f.write("%s " % alloc_list[idx])
         f.write("\n")
-        start += job_ranks[num_rank]
     f.closed
-
-
 
 
 
@@ -88,6 +92,9 @@ def policy_select(plcy, job_ranks, total_nodes):
     elif plcy == "STRIPE":
         print "stripe allcation!"
         stripe_alloc(job_ranks, total_nodes)
+    elif plcy == "PERMEATE":
+        print "permeate allocation!"
+        permeate_alloc(job_ranks, total_nodes)
     else:
         print "NOT Supported yet!"
 
