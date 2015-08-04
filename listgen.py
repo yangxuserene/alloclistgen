@@ -13,6 +13,30 @@ def contiguous_alloc(job_ranks, total_nodes):
         start += job_ranks[num_rank]
     f.closed
 
+def cube_alloc(job_ranks, total_nodes):
+    f = open(alloc_file,'w')
+    job_dim = 6 
+    sys_dim = 10
+    cube = []
+    start = 0
+    for k in range(job_dim):
+        layer = []
+        layer_offset = k*sys_dim*sys_dim
+        for j in range(job_dim):
+            row_offset = j*sys_dim
+            row = []
+            for i in range(job_dim):
+                offset = row_offset+layer_offset
+                row.append(i+offset)
+            layer += row
+        cube += layer
+    print "list length is", len(cube), cube
+    
+    for rankid in range(len(cube)):
+        f.write("%s " % cube[rankid])
+    f.closed
+    f.write("\n")
+
 
 def permeate_alloc(job_ranks, total_nodes):
     f = open(alloc_file,'w')
@@ -34,7 +58,7 @@ def stripe_alloc(job_ranks, total_nodes):
     #print "the num of nodes of each Job", job_ranks 
     f = open(alloc_file,'w')
     node_list = range(0, int(total_nodes))
-    stripe_size = 10
+    stripe_size = 10 
     alloc_list = []
     for num_rank in range(len(job_ranks)):
     #    print "job id", num_rank
@@ -95,6 +119,9 @@ def policy_select(plcy, job_ranks, total_nodes):
     elif plcy == "PERMEATE":
         print "permeate allocation!"
         permeate_alloc(job_ranks, total_nodes)
+    elif plcy == "CUBE":
+        print "cube allocation!"
+        cube_alloc(job_ranks, total_nodes)
     else:
         print "NOT Supported yet!"
 
