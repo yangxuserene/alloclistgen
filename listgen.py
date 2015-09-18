@@ -34,8 +34,10 @@ def cube_alloc(job_ranks, total_nodes):
     
     for rankid in range(len(cube)):
         f.write("%s " % cube[rankid])
-    f.closed
     f.write("\n")
+    
+    
+    f.closed
 
 
 def permeate_alloc(job_ranks, total_nodes):
