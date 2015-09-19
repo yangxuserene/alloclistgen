@@ -15,17 +15,17 @@ def contiguous_alloc(job_ranks, total_nodes):
 
 def cube_alloc(job_ranks, total_nodes):
     f = open(alloc_file,'w')
-    job_dim = 6 
+    job_dim = [5,5,5] 
     sys_dim = 10
     cube = []
     start = 0
-    for k in range(job_dim):
+    for k in range(job_dim[2]):
         layer = []
         layer_offset = k*sys_dim*sys_dim
-        for j in range(job_dim):
+        for j in range(job_dim[1]):
             row_offset = j*sys_dim
             row = []
-            for i in range(job_dim):
+            for i in range(job_dim[0]):
                 offset = row_offset+layer_offset
                 row.append(i+offset)
             layer += row
@@ -45,7 +45,7 @@ def permeate_alloc(job_ranks, total_nodes):
     start=0
     node_list = range(0, int(total_nodes))
     for num_rank in range(len(job_ranks)):
-        permeate_area = job_ranks[num_rank]*2
+        permeate_area = job_ranks[num_rank]*8
         permeate_list = node_list[num_rank*permeate_area: (num_rank+1)*permeate_area]
         alloc_list = random.sample(permeate_list, job_ranks[num_rank])
         print "length of alloc list", len(alloc_list), "\n", alloc_list,"\n"
@@ -60,7 +60,7 @@ def stripe_alloc(job_ranks, total_nodes):
     #print "the num of nodes of each Job", job_ranks 
     f = open(alloc_file,'w')
     node_list = range(0, int(total_nodes))
-    stripe_size = 10 
+    stripe_size = 10
     alloc_list = []
     for num_rank in range(len(job_ranks)):
     #    print "job id", num_rank
