@@ -30,6 +30,9 @@ class Dragonfly(object):
         elif self.alloc_type == 'hyb-1':
             print "Dragonfly xxx "+ self.alloc_type + " Allocation!"
             self.hybrid_alloc()
+        elif self.alloc_type == 'op_rand':
+            print "Dragonfly Over Provision Random Allocation!"
+            self.overprovision_random_alloc()
         else:
             print self.alloc_type +" Function Not Supported Yet!"
             exit()
@@ -102,4 +105,24 @@ class Dragonfly(object):
             f.closed
             self.alloc_file=self.alloc_file[:-2]
 
-
+    def overprovision_random_alloc(self):
+        # each job gets random allocation in a over provision area
+        # the size of the area is TWICE as mush as the job size
+        for seed in range(self.num_seed):
+            self.alloc_file += '-'+str(seed)
+            f = open(self.alloc_file+'.conf', 'w')
+            node_list = range(0, int(self.total_node))
+            random.seed(seed)
+            start = 0
+            for num_rank in range(len(self.job_rank)):
+                op_size = self.job_rank[num_rank]*2
+                op_list = node_list[start : start+op_size]
+                node_list = node_list[start+op_size: ]
+                alloc_list = random.sample(op_list, self.job_rank[num_rank])
+                #  alloc_list.sort()
+                #  print "length of alloc list", len(alloc_list), "\n", alloc_list,"\n"
+                for idx in range(len(alloc_list)):
+                    f.write("%s " % alloc_list[idx])
+                f.write("\n")
+            f.closed
+            self.alloc_file=self.alloc_file[:-2]
