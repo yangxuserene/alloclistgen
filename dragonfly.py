@@ -27,9 +27,12 @@ class Dragonfly(object):
              self.alloc_type == 'rand_node':
             print "Dragonfly "+ self.alloc_type + " Allocation!"
             self.random_alloc()
-        elif self.alloc_type == 'hyb-1':
+        elif self.alloc_type == 'hyb':
             print "Dragonfly xxx "+ self.alloc_type + " Allocation!"
             self.hybrid_alloc()
+        elif self.alloc_type == 'cont_perm':
+            print "Dragonfly different permutation of Contiguous Allocation"
+            self.cont_permutation()
         elif self.alloc_type == 'op_rand':
             print "Dragonfly Over Provision Random Allocation!"
             self.overprovision_random_alloc()
@@ -71,7 +74,7 @@ class Dragonfly(object):
 
 
     def cont_alloc(self):
-        f = open(self.alloc_file, 'w')
+        f = open(self.alloc_file+'.conf', 'w')
         start = 0
         for num_rank in self.job_rank:
             for rankid in range(start, start+ num_rank):
@@ -81,10 +84,28 @@ class Dragonfly(object):
         f.closed
 
 
+    def cont_permutation(self):
+        for seed in range(self.num_seed):
+            self.alloc_file = str(seed)+'-'+self.alloc_file
+            f = open(self.alloc_file+'.conf', 'w')
+            start = 0
+            for num_rank in self.job_rank:
+                alloc_list = range(start, start+num_rank)
+                random.seed(seed)
+                random.shuffle(alloc_list)
+                for item in alloc_list:
+                    f.write("%s " % item)
+                f.write("\n")
+                start += num_rank
+            f.closed
+            self.alloc_file=self.alloc_file[2:]
+
+
+
     def hybrid_alloc(self):
         #  the first 'cont_job_num' jobs get contiguous allocation 
         #  the other job get random allocation
-        cont_job_num = 2
+        cont_job_num = 1
         for seed in range(self.num_seed):
             self.alloc_file += '-'+str(seed)
             f = open(self.alloc_file+'.conf', 'w')

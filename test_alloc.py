@@ -12,9 +12,10 @@ The way to generate allocation list on Dragonfly:
     Dragonfly(num.router, num.group, alloc_function, jobrank_list, num.random_seed)
 
 '''
-Dragonfly(8, 33, 'rand_router', jobrank_list, 1)
+#  Dragonfly(8, 33, 'cont', jobrank_list, 1)
+#  Dragonfly(8, 33, 'rand_router', jobrank_list, 1)
 #  Dragonfly(8, 33, 'rand_group', jobrank_list, 1)
-#  Dragonfly(8, 33, 'rand_node', jobrank_list, 1)
+Dragonfly(8, 33, 'rand_node', jobrank_list, 2)
 #  Dragonfly(8, 33, 'hyb', jobrank_list, 3)
  
 '''
