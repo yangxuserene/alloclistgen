@@ -27,10 +27,13 @@ class Dragonfly(object):
              self.alloc_type == 'rand_node':
             print "Dragonfly "+ self.alloc_type + " Allocation!"
             self.random_alloc()
+        elif self.alloc_type == 'rand-perm':
+            print "lists of permutations of a random allocated node set "
+            self.random_permutation()
         elif self.alloc_type == 'hyb':
             print "Dragonfly xxx "+ self.alloc_type + " Allocation!"
             self.hybrid_alloc()
-        elif self.alloc_type == 'cont_perm':
+        elif self.alloc_type == 'cont-perm':
             print "Dragonfly different permutation of Contiguous Allocation"
             self.cont_permutation()
         elif self.alloc_type == 'op_rand':
@@ -39,6 +42,19 @@ class Dragonfly(object):
         else:
             print self.alloc_type +" Function Not Supported Yet!"
             exit()
+
+
+
+    def cont_alloc(self):
+        f = open(self.alloc_file+'.conf', 'w')
+        start = 0
+        for num_rank in self.job_rank:
+            for rankid in range(start, start+ num_rank):
+                f.write("%s " % rankid)
+            f.write("\n")
+            start += num_rank
+        f.closed
+
 
     def random_alloc(self):
         chunk_size = 1
@@ -72,17 +88,25 @@ class Dragonfly(object):
             f.closed
             self.alloc_file=self.alloc_file[:-2]
 
-
-    def cont_alloc(self):
-        f = open(self.alloc_file+'.conf', 'w')
-        start = 0
-        for num_rank in self.job_rank:
-            for rankid in range(start, start+ num_rank):
-                f.write("%s " % rankid)
-            f.write("\n")
-            start += num_rank
-        f.closed
-
+    def random_permutation(self):
+        for seed in range(self.num_seed):
+            tmp_filename = self.alloc_file
+            #  self.alloc_file += '-'+'perm'+str(seed)
+            node_list = range(0, int(self.total_node))
+            random.seed(seed)
+            for rank in self.job_rank:
+                alloc_list = random.sample(node_list, rank)
+                node_list = [elem for elem in node_list if (elem not in alloc_list)]
+                for perm_seed in range(5):
+                    self.alloc_file = self.alloc_file[:9]+str(seed)+str(perm_seed)+self.alloc_file[9:]
+                    f = open(self.alloc_file+'.conf', 'a')
+                    self.alloc_file=tmp_filename
+                    random.seed(perm_seed)
+                    random.shuffle(alloc_list)
+                    for idx in range(rank):
+                        f.write("%s " % alloc_list[idx])
+                    f.write("\n")
+                f.closed
 
     def cont_permutation(self):
         for seed in range(self.num_seed):
@@ -100,8 +124,6 @@ class Dragonfly(object):
                 start += num_rank
             f.closed
             self.alloc_file = file_surfix 
-
-
 
     def hybrid_alloc(self):
         #  the first 'cont_job_num' jobs get contiguous allocation 
