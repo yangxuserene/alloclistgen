@@ -86,6 +86,7 @@ class Dragonfly(object):
 
     def cont_permutation(self):
         for seed in range(self.num_seed):
+            file_surfix = self.alloc_file
             self.alloc_file = str(seed)+'-'+self.alloc_file
             f = open(self.alloc_file+'.conf', 'w')
             start = 0
@@ -98,7 +99,7 @@ class Dragonfly(object):
                 f.write("\n")
                 start += num_rank
             f.closed
-            self.alloc_file=self.alloc_file[2:]
+            self.alloc_file = file_surfix 
 
 
 
