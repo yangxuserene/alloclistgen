@@ -22,8 +22,8 @@ class Dragonfly(object):
         if self.alloc_type == 'cont':
             print "this is dragonfly cont alloc"
             self.cont_alloc()
-        elif self.alloc_type == 'rand_router' or \
-             self.alloc_type == 'rand_group' or \
+        elif self.alloc_type == 'rand_rotr' or \
+             self.alloc_type == 'rand_grop' or \
              self.alloc_type == 'rand_node':
             print "Dragonfly "+ self.alloc_type + " Allocation!"
             self.random_alloc()
@@ -59,16 +59,17 @@ class Dragonfly(object):
     def random_alloc(self):
         chunk_size = 1
         #  chunk_size is the num of consecutive nodes 
-        if self.alloc_type == 'rand_router':
+        if self.alloc_type == 'rand_rotr':
             #  chunk_size equals to num of nodes attached to a router 
             chunk_size = self.num_router/2
-        elif self.alloc_type == 'rand_group':
+        elif self.alloc_type == 'rand_grop':
             #  chunk_size equals to num of nodes in each group 
             chunk_size = self.num_router * self.num_router/2
         elif self.alloc_type == 'rand_node':
             chunk_size = 1
         for seed in range(self.num_seed):
-            self.alloc_file += '-'+str(seed)
+            tmp_filename = self.alloc_file
+            self.alloc_file = self.alloc_file[:9]+str(seed)+self.alloc_file[9:]
             #print self.alloc_file
             f = open(self.alloc_file+'.conf', 'w')
             node_list = range(0, int(self.total_node))
@@ -81,15 +82,15 @@ class Dragonfly(object):
                     idx = random.randint(0, len(node_list)-chunk_size)
                     alloc_list += node_list[idx:idx+chunk_size]
                     node_list = [elem for elem in node_list if (elem not in alloc_list)]
-                print alloc_list[0:rank]
+                #  print alloc_list[0:rank]
                 for idx in range(rank):
                     f.write("%s " % alloc_list[idx])
                 f.write("\n")
             f.closed
-            self.alloc_file=self.alloc_file[:-2]
+            self.alloc_file= tmp_filename
 
     def random_permutation(self):
-        for seed in range(self.num_seed):
+        for seed in range(self.num_seed):#num. of random node set for each job
             tmp_filename = self.alloc_file
             #  self.alloc_file += '-'+'perm'+str(seed)
             node_list = range(0, int(self.total_node))
@@ -97,12 +98,13 @@ class Dragonfly(object):
             for rank in self.job_rank:
                 alloc_list = random.sample(node_list, rank)
                 node_list = [elem for elem in node_list if (elem not in alloc_list)]
-                for perm_seed in range(5):
+                for perm_seed in range(10):#num. of permutation for each node set
                     self.alloc_file = self.alloc_file[:9]+str(seed)+str(perm_seed)+self.alloc_file[9:]
                     f = open(self.alloc_file+'.conf', 'a')
                     self.alloc_file=tmp_filename
                     random.seed(perm_seed)
                     random.shuffle(alloc_list)
+                    #  alloc_list.sort()
                     for idx in range(rank):
                         f.write("%s " % alloc_list[idx])
                     f.write("\n")
@@ -111,13 +113,14 @@ class Dragonfly(object):
     def cont_permutation(self):
         for seed in range(self.num_seed):
             file_surfix = self.alloc_file
-            self.alloc_file = str(seed)+'-'+self.alloc_file
+            self.alloc_file = self.alloc_file[:9]+str(seed)+self.alloc_file[9:]
             f = open(self.alloc_file+'.conf', 'w')
             start = 0
             for num_rank in self.job_rank:
                 alloc_list = range(start, start+num_rank)
                 random.seed(seed)
                 random.shuffle(alloc_list)
+                #  alloc_list.sort()
                 for item in alloc_list:
                     f.write("%s " % item)
                 f.write("\n")
