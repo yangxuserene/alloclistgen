@@ -3,9 +3,10 @@ from enum import Enum
 
 class Dragonfly(object):
     def __init__(self, router, group, alloc_type, job_rank, num_seed):
-        self.num_router = router
+        self.num_router_per_group = router
         self.num_group = group
-        self.total_node = self.num_router*self.num_router*self.num_group/2
+        self.total_node = self.num_router_per_group*self.num_router_per_group*self.num_group/2
+        self.total_router = group*router
         self.job_rank = job_rank
         self.alloc_type = alloc_type
         self.num_seed = num_seed
@@ -22,8 +23,10 @@ class Dragonfly(object):
         if self.alloc_type == 'cont':
             print "this is dragonfly cont alloc"
             self.cont_alloc()
-        elif self.alloc_type == 'rand_rotr' or \
-             self.alloc_type == 'rand_grop' or \
+        elif self.alloc_type == 'rand_rotr':
+            self.random_router_alloc();
+
+        elif self.alloc_type == 'rand_grop' or \
              self.alloc_type == 'rand_node':
             print "Dragonfly "+ self.alloc_type + " Allocation!"
             self.random_alloc()
@@ -54,17 +57,41 @@ class Dragonfly(object):
             f.write("\n")
             start += num_rank
         f.closed
+    
+    def random_router_alloc(self):
+        num_node_per_router = self.num_router_per_group/2
+        for seed in range(self.num_seed):
+            tmp_filename = self.alloc_file
+            self.alloc_file = self.alloc_file[:9]+str(seed)+self.alloc_file[9:]
+            #print self.alloc_file
+            f = open(self.alloc_file+'.conf', 'w')
+            random.seed(seed)
+            router_id_list = list(xrange(self.total_router))
+            for rank in self.job_rank:
+                alloc_list = []
+                while(len(alloc_list) < rank):
+                    router_id = random.choice(router_id_list)
+                    router_id_list.remove(router_id)
+                    node_id_start = router_id*num_node_per_router
+                    for x in range(num_node_per_router):
+                        alloc_list.append(node_id_start+x)
+                alloc_list = alloc_list[:rank]
+                #  print alloc_list, '\n', len(alloc_list)
+                for item in alloc_list:
+                    f.write("%s " % item)
+                f.write("\n")
 
+            f.closed
+            self.alloc_file= tmp_filename
+
+ 
 
     def random_alloc(self):
         chunk_size = 1
         #  chunk_size is the num of consecutive nodes 
-        if self.alloc_type == 'rand_rotr':
-            #  chunk_size equals to num of nodes attached to a router 
-            chunk_size = self.num_router/2
-        elif self.alloc_type == 'rand_grop':
+        if self.alloc_type == 'rand_grop':
             #  chunk_size equals to num of nodes in each group 
-            chunk_size = self.num_router * self.num_router/2
+            chunk_size = self.num_router_per_group * self.num_router_per_group/2
         elif self.alloc_type == 'rand_node':
             chunk_size = 1
         for seed in range(self.num_seed):
@@ -137,7 +164,7 @@ class Dragonfly(object):
             f = open(self.alloc_file+'.conf', 'w')
             node_list = range(0, int(self.total_node))
             random.seed(seed)
-            group_size = self.num_router*self.num_router/2 
+            group_size = self.num_router_per_group*self.num_router_per_group/2 
             for rankid in range(len(self.job_rank)):
                 if(rankid < cont_job_num ):
                     job_size = self.job_rank[rankid]
