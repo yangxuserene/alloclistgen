@@ -117,11 +117,6 @@ class Dragonfly(object):
     def random_alloc(self):
         chunk_size = 1
         #  chunk_size is the num of consecutive nodes 
-        if self.alloc_type == 'rand_grop':
-            #  chunk_size equals to num of nodes in each group 
-            chunk_size = self.num_router_per_group * self.num_router_per_group/2
-        elif self.alloc_type == 'rand_node':
-            chunk_size = 1
         for seed in range(self.num_seed):
             tmp_filename = self.alloc_file
             self.alloc_file = self.alloc_file[:9]+str(seed)+self.alloc_file[9:]
@@ -145,6 +140,8 @@ class Dragonfly(object):
             self.alloc_file= tmp_filename
 
     def random_permutation(self):
+        #each job gets random nodes set,
+        #randomize that nodes set sequence resulting random mapping with random allocation
         for seed in range(self.num_seed):#num. of random node set for each job
             tmp_filename = self.alloc_file
             #  self.alloc_file += '-'+'perm'+str(seed)
@@ -174,7 +171,8 @@ class Dragonfly(object):
             for num_rank in self.job_rank:
                 alloc_list = range(start, start+num_rank)
                 random.seed(seed)
-                random.shuffle(alloc_list)
+                if num_rank == 216:#AMG gets random mapping, others get consecutive mapping
+                    random.shuffle(alloc_list)
                 #  alloc_list.sort()
                 for item in alloc_list:
                     f.write("%s " % item)
