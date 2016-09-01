@@ -33,6 +33,9 @@ class Dragonfly(object):
         elif self.alloc_type == 'rand_node':
             print "Dragonfly "+ self.alloc_type + " Allocation!"
             self.random_alloc()
+        elif self.alloc_type == 'rand_part':
+            print "Dragonfly "+ self.alloc_type + " Allocation!"
+            self.random_partition_alloc()
         elif self.alloc_type == 'rand-perm':
             print "lists of permutations of a random allocated node set "
             self.random_permutation()
@@ -75,7 +78,7 @@ class Dragonfly(object):
                     router_id = random.choice(router_id_list)
                     router_id_list.remove(router_id)
                     node_id_start = router_id*self.num_node_per_router
-                    for x in range(slef.num_node_per_router):
+                    for x in range(self.num_node_per_router):
                         alloc_list.append(node_id_start+x)
                 alloc_list = alloc_list[:rank]
                 #  print alloc_list, '\n', len(alloc_list)
@@ -102,6 +105,33 @@ class Dragonfly(object):
                     group_id_list.remove(group_id)
                     node_id_start = group_id*num_node_per_group
                     for x in range(num_node_per_group):
+                        alloc_list.append(node_id_start+x)
+                alloc_list = alloc_list[:rank]
+                #  print alloc_list, '\n', len(alloc_list)
+                for item in alloc_list:
+                    f.write("%s " % item)
+                f.write("\n")
+
+            f.closed
+            self.alloc_file= tmp_filename
+
+
+    def random_partition_alloc(self):
+        num_node_per_partition = 8
+        for seed in range(self.num_seed):
+            tmp_filename = self.alloc_file
+            self.alloc_file = self.alloc_file[:9]+str(seed)+self.alloc_file[9:]
+            #print self.alloc_file
+            f = open(self.alloc_file+'.conf', 'w')
+            random.seed(seed)
+            partition_id_list = list(xrange(self.total_node / num_node_per_partition ))
+            for rank in self.job_rank:
+                alloc_list = []
+                while(len(alloc_list) < rank):
+                    partition_id = random.choice(partition_id_list)
+                    partition_id_list.remove(partition_id)
+                    node_id_start = partition_id*num_node_per_partition
+                    for x in range(num_node_per_partition):
                         alloc_list.append(node_id_start+x)
                 alloc_list = alloc_list[:rank]
                 #  print alloc_list, '\n', len(alloc_list)
@@ -171,8 +201,8 @@ class Dragonfly(object):
             for num_rank in self.job_rank:
                 alloc_list = range(start, start+num_rank)
                 random.seed(seed)
-                if num_rank == 216:#AMG gets random mapping, others get consecutive mapping
-                    random.shuffle(alloc_list)
+                #  if num_rank == 216:#AMG gets random mapping, others get consecutive mapping
+                random.shuffle(alloc_list)
                 #  alloc_list.sort()
                 for item in alloc_list:
                     f.write("%s " % item)
